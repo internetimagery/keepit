@@ -4,6 +4,7 @@ import maya.cmds as cmds
 import os.path
 import random
 import base64
+import time
 import os
 
 IMG_ROOT = os.path.join(os.path.dirname(__file__), "images")
@@ -85,3 +86,20 @@ def test1():
 def test2():
     """ test image """
     print(embedImage())
+
+def test3():
+    """ Test startup popup """
+    import tempfile
+    import shutil
+    root = tempfile.mkdtemp()
+    try:
+        cmds.file(new=True, force=True)
+        sup = Startup("Hi there. \"Test\" worked!")
+        place = os.path.join(root, "test.ma")
+        with sup:
+            cmds.file(rename=place)
+            cmds.file(save=True, type="mayaAscii")
+        cmds.file(place, open=True, force=True)
+    finally:
+        shutil.rmtree(root)
+        assert not os.path.isdir(root)
