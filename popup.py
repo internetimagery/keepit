@@ -1,4 +1,5 @@
 # Pop up a message when maya scene loads
+import maya.cmds as cmds
 
 class Startup(object):
     """
@@ -45,3 +46,14 @@ cmds.fileInfo(rm=uid)
         cmds.fileInfo(rm=s.uid)
         if cmds.objExists(s.job):
             cmds.delete(s.job)
+
+def Prompt():
+    """ Prompt for response """
+    save = "Save"
+    result = cmds.promptDialog(
+		title='Scene is saving...',
+		message='Archive note:',
+		button=[save])
+    if result == save:
+    	return cmds.promptDialog(query=True, text=True).strip()
+    return ""
