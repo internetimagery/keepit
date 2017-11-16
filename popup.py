@@ -1,5 +1,25 @@
 # Pop up a message when maya scene loads
+from __future__ import print_function
 import maya.cmds as cmds
+import os.path
+import random
+import base64
+import os
+
+IMG_ROOT = os.path.join(os.path.dirname(__file__), "images")
+IMAGES = [(os.path.join(IMG_ROOT, a), os.path.splitext(a)[1][1:]) for a in os.listdir(IMG_ROOT) if a.endswith("png")]
+
+def embedImage():
+    """
+    Grab a random image and embed it in the scene.
+    """
+    if IMAGES:
+        img_path, img_ext = random.choice(IMAGES)
+        with open(img_path, "rb") as f:
+            image = "<img src=\\\"data:image/%s;base64,%s\\\">" % (img_ext, base64.b64encode(f.read()))
+        return "cmds.text(hl=True, l=\"%s\", h=100, w=100)" % image
+    else:
+        return "cmds.iconTextStaticLabel(image=\"envChrome.svg\", h=100, w=100)  # file.svg looks nice too..."
 
 class Startup(object):
     """
@@ -8,7 +28,7 @@ class Startup(object):
     def __init__(s, message):
         s.uid = "POPUP_%s" % int((time.time() * 100))  # Generate unique ID
         s.message = message
-        # TODO: Stringify this message also!
+        # TODO: Stringify this message also?
 
     def stringify(s, data):
         return "python(\"%s\");" % data.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", r"\n")
@@ -57,3 +77,11 @@ def Prompt():
     if result == save:
     	return cmds.promptDialog(query=True, text=True).strip()
     return ""
+
+def test1():
+    """ test prompt """
+    print(Prompt())
+
+def test2():
+    """ test image """
+    print(embedImage())
