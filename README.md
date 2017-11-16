@@ -1,2 +1,2 @@
-# archive
-Archive Maya files
+# Keep It!
+Archive your Maya files. Simply.
