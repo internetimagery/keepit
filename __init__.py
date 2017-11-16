@@ -3,6 +3,7 @@ from __future__ import print_function
 import maya.cmds as cmds
 import datetime
 import popup
+import save
 
 def build_message(message):
     """ Create a nice message with relevant info """
