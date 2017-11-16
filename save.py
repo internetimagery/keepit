@@ -7,9 +7,9 @@ def kill(id_):
     if cmds.scriptJob(ex=id_):
         cmds.scriptJob(kill=id_)
 
-def Save(func):
+def Save(callback):
     """ Save scene! """
-    job = cmds.scriptJob(e=('SceneSaved', func), ro=True)
+    job = cmds.scriptJob(e=('SceneSaved', callback), ro=True)
     cmds.scriptJob(e=('idle', lambda: kill(job)), ro=True)
     try:
         mel.eval("checkForUnknownNodes(); FileMenu_SaveItem") # Perform save, using mayas built in save
@@ -17,6 +17,12 @@ def Save(func):
         kill(job)
         raise err
 
+def test():
+    """ Quick test """
+    def say():
+        print "SAVE CALLBACK FIRED!!"
+
+    Save(say)
 
 #
 #
