@@ -26,7 +26,7 @@ def main():
     note = popup.Prompt()
     if note:
         # Perform archive
-        sup = popup.Startup(note)
+        sup = popup.Startup(build_message(note))
         with sup:
             save.save_and_call(functools.partial(keepit, note))
     else:
