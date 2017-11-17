@@ -57,7 +57,7 @@ def archive(note, root, src):
             shutil.copy(s, d)
 
         # Create thumbnail
-        pic = thumb.capture(500, tmp_root)
+        pic = thumb.capture(500, tmp_root, "thumb.jpg")
         if pic:
             dest.append(pic)
 
