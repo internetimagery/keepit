@@ -10,7 +10,7 @@ ARCHIVE = "archive"
 EXT = (".ma", ".mb")
 WHITELIST = re.compile(r"[^ \.\-\_\w]")
 
-def main(root, files, note):
+def main(root, source, copy, note):
     """ Archive into folder. Note in filename """
     # Create an archive folder
     archive = os.path.join(root, ARCHIVE)
@@ -18,7 +18,7 @@ def main(root, files, note):
         os.mkdir(archive)
 
     # Grab a file to use as the base name for archive
-    for basename in files:
+    for basename in copy:
         if os.path.splitext(basename)[-1] in EXT:
             break
 
@@ -36,7 +36,7 @@ def main(root, files, note):
     z = zipfile.ZipFile(dest, "w")
     err = None
     try:
-        for src in files:
+        for src in copy:
             z.write(src, os.path.basename(src))
         return "File archived to {}".format(dest)
     except Exception as err:

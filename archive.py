@@ -34,14 +34,13 @@ for path in os.listdir(ROOT):
             pass
         ARCHIVERS.append(module)
 
-def run_archive(root, dest, note, module, callback):
+def run_archive(root, src, dest, note, module, callback):
     """ Run archive and when done, return """
     res = None
     try:
-        res = module.main(root, dest, note)
+        res = module.main(root, src, dest, note)
     except Exception as err:
         res = traceback.format_exc()
-        raise err
     finally:
         callback(res)
 
@@ -70,7 +69,7 @@ def archive(src, note):
         for module in ARCHIVERS:
             threading.Thread(
                 target=run_archive,
-                args=(prj_root, dest, note, module, cleanup)
+                args=(prj_root, src, dest, note, module, cleanup)
                 ).start()
 
     except Exception as err:
