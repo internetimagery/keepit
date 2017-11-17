@@ -50,15 +50,16 @@ def archive(note, root, src):
     # Create a temporary file
     tmp_root = tempfile.mkdtemp()
     try:
-        # Create thumbnail
-        thumb = thumb.capture(500, tmp_root)
-        if thumb:
-            src.append(thumb)
 
         # Copy save file to safe location
         dest = [os.path.join(tmp_root, os.path.basename(a)) for a in src]
         for s, d in zip(src, dest):
             shutil.copy(s, d)
+
+        # Create thumbnail
+        pic = thumb.capture(500, tmp_root)
+        if pic:
+            dest.append(pic)
 
         # Run when all archivers are complete
         results = []
