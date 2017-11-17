@@ -6,6 +6,7 @@ import threading
 import tempfile
 import os.path
 import shutil
+import thumb
 import imp
 import os
 
@@ -44,14 +45,18 @@ def run_archive(root, src, dest, note, module, callback):
     finally:
         callback(res)
 
-def archive(note, src):
+def archive(note, root, src):
     """ Given a list of filepaths and note, archive file """
     # Create a temporary file
-    prj_root = os.path.dirname(src[0])
-    root = tempfile.mkdtemp()
+    tmp_root = tempfile.mkdtemp()
     try:
+        # Create thumbnail
+        thumb = thumb.capture(500, tmp_root)
+        if thumb:
+            src.append(thumb)
+
         # Copy save file to safe location
-        dest = [os.path.join(root, os.path.basename(a)) for a in src]
+        dest = [os.path.join(tmp_root, os.path.basename(a)) for a in src]
         for s, d in zip(src, dest):
             shutil.copy(s, d)
 
@@ -60,7 +65,7 @@ def archive(note, src):
         def cleanup(res):
             results.append(res)
             if len(results) == len(ARCHIVERS):
-                shutil.rmtree(root)
+                shutil.rmtree(tmp_root)
                 p = safe_func(print)
                 for res in results:
                     p(res)
@@ -69,9 +74,9 @@ def archive(note, src):
         for module in ARCHIVERS:
             threading.Thread(
                 target=run_archive,
-                args=(prj_root, src, dest, note, module, cleanup)
+                args=(root, src, dest, note, module, cleanup)
                 ).start()
 
     except Exception as err:
-        shutil.rmtree(root)
+        shutil.rmtree(tmp_root)
         raise err

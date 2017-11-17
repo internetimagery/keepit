@@ -3,6 +3,7 @@ from __future__ import print_function
 import functools
 import datetime
 import archive
+import os.path
 import popup
 import save
 
@@ -16,8 +17,8 @@ def build_message(message):
 
 def keepit(note, path):
     """ Kick off an archive """
-    # TODO: Potentially add thumbnails etc
-    archive.archive(note, [path])
+    root = os.path.dirname(path)
+    archive.archive(note, root, [path])
 
 def main():
     """ Perform an archive save! """

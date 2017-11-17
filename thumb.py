@@ -4,12 +4,13 @@ import maya.cmds as cmds
 import maya.mel as mel
 import os.path
 
-def capture(out_path, pixels):
+def capture(pixels, dest, name="thumb.png"):
     """ Capture thumbnail """
     # Validate our inputs
     if not pixels or type(pixels) != int:
         raise RuntimeError, "No valid size provided"
     # Collect information:
+    out_path = os.path.join(dest, name)
     view = cmds.playblast(activeEditor=True) # Panel to capture from
     camera = cmds.modelEditor(view, q=True, cam=True)
     state = cmds.modelEditor(view, q=True, sts=True)
