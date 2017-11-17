@@ -10,7 +10,10 @@ def kill(id_):
 
 def save():
     """ Run maya's built in save """
-    mel.eval("SaveScene")
+    if cmds.file(q=True, sn=True):
+        mel.eval("SaveScene")
+    else:
+        mel.eval("SaveSceneAs") # Use manually in case it's overriden
     # mel.eval("checkForUnknownNodes(); FileMenu_SaveItem") # Perform save, using mayas built in save
 
 def save_and_call(callback):
