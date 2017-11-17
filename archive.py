@@ -44,7 +44,7 @@ def run_archive(root, src, dest, note, module, callback):
     finally:
         callback(res)
 
-def archive(src, note):
+def archive(note, src):
     """ Given a list of filepaths and note, archive file """
     # Create a temporary file
     prj_root = os.path.dirname(src[0])

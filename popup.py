@@ -58,7 +58,6 @@ cmds.fileInfo(rm=uid)
 """ % {"uid": s.uid, "job": s.job, "image": embedImage(), "message": s.message}
         cmds.scriptNode(s.job, e=True, bs=s.stringify(s.code))
         cmds.fileInfo(s.uid, "ok")
-        return s
 
     def __exit__(s, err, val, trace):
         """
@@ -70,7 +69,7 @@ cmds.fileInfo(rm=uid)
 
 def Prompt():
     """ Prompt for response """
-    save = "Save"
+    save = "Keep It"
     result = cmds.promptDialog(
 		title='Scene is saving...',
 		message='Archive note:',

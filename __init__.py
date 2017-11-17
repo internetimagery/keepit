@@ -1,7 +1,8 @@
 # Simple save and archive functionality
 from __future__ import print_function
-import maya.cmds as cmds
+import functools
 import datetime
+import archive
 import popup
 import save
 
@@ -13,12 +14,23 @@ def build_message(message):
 <div>- The file <strong>has not been modified since.</strong></div><br>
 """ % {"time": datetime.datetime.today().strftime("%I:%M%p %A %d-%m-%Y"), "message": message}
 
+def keepit(note, path):
+    """ Kick off an archive """
+    # TODO: Potentially add thumbnails etc
+    archive.archive(note, [path])
+
 def main():
     """ Perform an archive save! """
+    # Ask for a message. If no message, save as normal without archive.
     note = popup.Prompt()
     if note:
-        pass
-
+        # Perform archive
+        sup = popup.Startup(note)
+        with sup:
+            save.save_and_call(functools.partial(keepit, note))
+    else:
+        # Save normally. Thank you, come again!
+        save.save()
 
 def test1():
     """ test message """
