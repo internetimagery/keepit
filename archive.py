@@ -46,14 +46,14 @@ def run_archive(src, note, module, callback):
         callback(res)
 
 def archive(src, note):
-    """ Given a filepath and note, archive file """
+    """ Given a list of filepaths and note, archive file """
     # Create a temporary file
     root = tempfile.mkdtemp()
     try:
         # Copy save file to safe location
-        src_name = os.path.basename(src)
-        dest = os.path.join(root, src_name)
-        shutil.copy(src, dest)
+        dest = [os.path.join(root, os.path.basename(a)) for a in src]
+        for s, d in zip(src, dest):
+            shutil.copy(s, d)
 
         # Run when all archivers are complete
         results = []
@@ -71,6 +71,7 @@ def archive(src, note):
                 target=run_archive,
                 args=(dest, note, module, cleanup)
                 ).start()
+
     except Exception as err:
         shutil.rmtree(root)
         raise err
