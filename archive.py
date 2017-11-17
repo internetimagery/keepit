@@ -24,7 +24,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "archives")
 ARCHIVERS = []
 for path in os.listdir(ROOT):
     name, ext = os.path.splitext(path)
-    if ext == ".py":
+    if ext == ".py" and name[0] != "_":
         module = imp.load_source(name, os.path.join(ROOT, path))
         # Inject safe functions
         module.print = safe_func(print)
