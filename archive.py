@@ -34,11 +34,11 @@ for path in os.listdir(ROOT):
             pass
         ARCHIVERS.append(module)
 
-def run_archive(src, note, module, callback):
+def run_archive(root, dest, note, module, callback):
     """ Run archive and when done, return """
     res = None
     try:
-        res = module.main(src, note)
+        res = module.main(root, dest, note)
     except Exception as err:
         res = traceback.format_exc()
         raise err
@@ -48,6 +48,7 @@ def run_archive(src, note, module, callback):
 def archive(src, note):
     """ Given a list of filepaths and note, archive file """
     # Create a temporary file
+    prj_root = os.path.dirname(src[0])
     root = tempfile.mkdtemp()
     try:
         # Copy save file to safe location
@@ -69,7 +70,7 @@ def archive(src, note):
         for module in ARCHIVERS:
             threading.Thread(
                 target=run_archive,
-                args=(dest, note, module, cleanup)
+                args=(prj_root, dest, note, module, cleanup)
                 ).start()
 
     except Exception as err:
