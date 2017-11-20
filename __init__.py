@@ -1,9 +1,7 @@
 # Simple save and archive functionality
 from __future__ import print_function
 import functools
-import datetime
 import archive
-import os.path
 import popup
 import view
 import save

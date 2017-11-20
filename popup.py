@@ -1,6 +1,7 @@
 # Pop up a message when maya scene loads
 from __future__ import print_function
 import maya.cmds as cmds
+import datetime
 import os.path
 import random
 import base64
@@ -28,7 +29,7 @@ def build_message(message):
 <div>- This Scene was last saved on <em>%(time)s</em>.</div>
 <div>- Completing the task: <code>%(message)s</code></div>
 <div>- The file <strong>has not been modified since.</strong></div><br>
-""" % {"time": datetime.datetime.today().strftime("%I:%M%p %A %d-%m-%Y"), "message": message}
+""" % {"time": datetime.datetime.today().strftime("%I:%M%p %A %d-%m-%Y"), "message": message.strip()}
 
 class Startup(object):
     """
