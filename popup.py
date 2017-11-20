@@ -22,13 +22,21 @@ def embedImage():
     else:
         return "cmds.iconTextStaticLabel(image=\"envChrome.svg\", h=100, w=100)  # file.svg looks nice too..."
 
+def build_message(message):
+    """ Create a nice message with relevant info """
+    return """
+<div>- This Scene was last saved on <em>%(time)s</em>.</div>
+<div>- Completing the task: <code>%(message)s</code></div>
+<div>- The file <strong>has not been modified since.</strong></div><br>
+""" % {"time": datetime.datetime.today().strftime("%I:%M%p %A %d-%m-%Y"), "message": message}
+
 class Startup(object):
     """
     Create a one time startup popup
     """
     def __init__(s, message):
         s.uid = "POPUP_%s" % int((time.time() * 100))  # Generate unique ID
-        s.message = message
+        s.message = build_message(message.strip())
         # TODO: Stringify this message also?
 
     def stringify(s, data):
