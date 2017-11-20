@@ -53,8 +53,10 @@ class Version(object):
             try:
                 s.index = json.loads(z.read("index.json"))
 
-                seq = itertools.cycle([img_tag(a, HEIGHT-30, z.read(a)) for a in s.index.get("thumb_seq", [])])
-                anim.anims[img] = seq
+                seq_images = [img_tag(a, HEIGHT-30, z.read(a)) for a in s.index.get("thumb_seq", [])]
+                if seq_images:
+                    seq = itertools.cycle(seq_images)
+                    anim.anims[img] = seq
 
                 created = datetime.datetime.strptime(s.index["time"], "%Y%m%d%H%M%S")
                 desc = "created: {}\nnote: {}".format(created.strftime("%I:%M%p %a %d/%m/%Y"), s.index["note"])
