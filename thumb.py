@@ -20,7 +20,7 @@ def capture(width, dest, seq):
     state = cmds.modelEditor(view, q=True, sts=True)
     imgFormat = cmds.getAttr("defaultRenderGlobals.imageFormat")
     selection = cmds.ls(sl=True) # Current selection
-    old_frame = cmds.currentTime(q=True) # Current time
+    start = cmds.currentTime(q=True)
     # Capture our thumbnail
     cmds.undoInfo(state=False)
     try:
@@ -42,7 +42,6 @@ def capture(width, dest, seq):
                 if ext not in FMT:
                     raise RuntimeError("Format not yet supported \"{}\"".format(ext))
                 cmds.setAttr("defaultRenderGlobals.imageFormat", FMT[ext])
-                cmds.currentTime(frame)
                 out_path = os.path.join(dest, seq[frame])
                 cmds.playblast(
                     frame=frame, # Frame range
@@ -59,7 +58,7 @@ def capture(width, dest, seq):
         # Put everything back as we found it.
         finally:
             # Reset options
-            cmds.currentTime(old_frame)
+            cmds.currentTime(start)
             cmds.select(selection, r=True)
             cmds.setAttr("defaultRenderGlobals.imageFormat", imgFormat)
             mel.eval("$editorName = \"%s\"" % view)
