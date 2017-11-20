@@ -78,7 +78,7 @@ class Version(object):
             with open(scene, "w") as f:
                 with zipfile.ZipFile(s.archive, "r") as z:
                     f.write(z.read(s.index["scene"]))
-            cmds.scriptJob(ro=True, e=("SceneOpened", lambda: (cmds.file(rename=""), shutil.rmtree(root))))
+            cmds.scriptJob(ro=True, e=("SceneOpened", lambda: (cmds.file(rename=""), cmds.file(rts=True), shutil.rmtree(root))))
             cmds.file(scene, open=True, force=True)
         except Exception as err:
             shutil.rmtree(root)
@@ -176,10 +176,10 @@ class Window(object):
                         space = cmds.columnLayout(adj=True, p=grid)
                         img = cmds.text(hl=True, l="", p=space)
                         nt = cmds.text(ww=True, l="", p=space)
-                        Version().run(img, nt, root, version, anim)
-                        # threads.append(threading.Thread(
-                        #     target=Version().run,
-                        #     args=(img, nt, root, version, anim)))
+                        # Version().run(img, nt, root, version, anim)
+                        threads.append(threading.Thread(
+                            target=Version().run,
+                            args=(img, nt, root, version, anim)))
         cmds.showWindow(win)
         for t in threads:
             t.start()
