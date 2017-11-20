@@ -49,13 +49,13 @@ class Version(object):
                 desc = "created: {}\nnote: {}".format(datetime.datetime.fromtimestamp(s.index["time"]), s.index["note"])
                 if ucmds(cmds.text, img, q=True, ex=True):
                     ucmds(cmds.text, img, e=True, l=thumb, ann=desc)
-                    ucmds(cmds.text, nt, e=True, l=s.index["note"])
+                    ucmds(cmds.text, nt, e=True, l="{}...".format(s.index["note"][:17]) if len(s.index["note"]) > 20 else s.index["note"])
                     ucmds(cmds.popupMenu, p=img)
                     ucmds(cmds.menuItem, i="fileNew.png", l="Load this version. (temporary)", c=s.load)
                     ucmds(cmds.menuItem, i="reverseOrder.png", l="Revert back to this version.", c=s.revert)
             except KeyError as err:
                 # No index file...
-                ucmds(print, "ERROR:", err, s.archive)
+                ucmds(print, "Missing index:", s.archive, err)
 
     def load(s, *_):
         """ Load version temporarally. """
