@@ -13,6 +13,18 @@ import json
 import imp
 import os
 
+# https://stackoverflow.com/questions/19654578/python-utc-datetime-objects-iso-format-doesnt-include-z-zulu-or-zero-offset
+class UTC(datetime.tzinfo):
+    def tzname(*_):
+        return "UTC"
+    def utcoffset(*_):
+        return datetime.timedelta(0)
+
+def utc():
+    """ Current time in UTC """
+    return datetime.datetime.utcnow().replace(tzinfo=UTC()).isoformat()
+
+
 def safe_func(func):
     """ Call function in threadsafe manner """
     def run(*args, **kwargs):
@@ -76,7 +88,7 @@ def archive(note, src):
         # Index file!
         index_name = "index.json"
         index_data = {
-            "time": datetime.datetime.now().isoformat(),
+            "time": datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
             "note": note,
             "scene": dest_name,
             "source": src,
@@ -99,11 +111,11 @@ def archive(note, src):
 
         # Run archivers!
         for module in ARCHIVERS:
-            run_archive(tmp_root, src, files, note, module, cleanup)
-            # threading.Thread(
-            #     target=run_archive,
-            #     args=(tmp_root, src, files, note, module, cleanup)
-            #     ).start()
+            # run_archive(tmp_root, src, files, note, module, cleanup)
+            threading.Thread(
+                target=run_archive,
+                args=(tmp_root, src, files, note, module, cleanup)
+                ).start()
 
     except Exception as err:
         shutil.rmtree(tmp_root)

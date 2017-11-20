@@ -5,6 +5,7 @@ import maya.utils as utils
 import maya.cmds as cmds
 import threading
 import functools
+import itertools
 import tempfile
 import datetime
 import os.path
@@ -13,21 +14,25 @@ import zipfile
 import base64
 import shutil
 import popup
+import time
 import json
 import os
 import re
 
 WIDTH = HEIGHT = 160
 
-
 SEM = threading.BoundedSemaphore(1)
 
-def ucmds(func, *args, **kwargs):
-    SEM.acquire()
-    try:
-        return utils.executeInMainThreadWithResult(func, *args, **kwargs)
-    finally:
-        SEM.release()
+class tcmds(object):
+    def __getattr__(s, func):
+        def run(*args, **kwargs):
+            SEM.acquire()
+            try:
+                return utils.executeInMainThreadWithResult(getattr(cmds, func), *args, **kwargs)
+            finally:
+                SEM.release()
+        return run
+tcmds = tcmds()
 
 def confirm(message):
     ok = "OK!"
@@ -35,27 +40,33 @@ def confirm(message):
         return True
     return False
 
+def img_tag(name, height, data):
+    ext = os.path.splitext(name)[-1][1:]
+    return "<img height={} src='data:image/{};base64,{}'>".format(
+        height, ext, base64.b64encode(data))
 
 class Version(object):
-    def run(s, img, nt, root, version):
+    def run(s, img, nt, root, version, anim):
         """ Version! """
         s.archive = os.path.join(root, version.group(0))
         with zipfile.ZipFile(s.archive, "r") as z:
             try:
                 s.index = json.loads(z.read("index.json"))
 
-                thumb = "<img height={} src='data:image/{};base64,{}'>".format(
-                    HEIGHT-30, os.path.splitext(s.index["thumb"])[1][1:], base64.b64encode(z.read(s.index["thumb"])))
-                desc = "created: {}\nnote: {}".format(datetime.datetime.fromtimestamp(s.index["time"]).strftime("%I:%M%p %a %d/%m/%Y"), s.index["note"])
-                if ucmds(cmds.text, img, q=True, ex=True):
-                    ucmds(cmds.text, img, e=True, l=thumb, ann=desc)
-                    ucmds(cmds.text, nt, e=True, l="{}...".format(s.index["note"][:17]) if len(s.index["note"]) > 20 else s.index["note"])
-                    ucmds(cmds.popupMenu, p=img)
-                    ucmds(cmds.menuItem, i="fileNew.png", l="Load this version. (temporary)", c=s.load)
-                    ucmds(cmds.menuItem, i="reverseOrder.png", l="Revert back to this version.", c=s.revert)
+                seq = itertools.cycle([img_tag(a, HEIGHT-30, z.read(a)) for a in s.index.get("thumb_seq", [])])
+                anim.anims[img] = seq
+
+                created = datetime.datetime.strptime(s.index["time"], "%Y%m%d%H%M%S")
+                desc = "created: {}\nnote: {}".format(created.strftime("%I:%M%p %a %d/%m/%Y"), s.index["note"])
+                if tcmds.text(img, q=True, ex=True):
+                    tcmds.text(img, e=True, l=img_tag(s.index.get("thumb", ""), HEIGHT-30, z.read(s.index["thumb"])), ann=desc)
+                    tcmds.text(nt, e=True, l="{}...".format(s.index["note"][:17]) if len(s.index["note"]) > 20 else s.index["note"])
+                    tcmds.popupMenu(p=img)
+                    tcmds.menuItem(i="fileNew.png", l="Load this version. (temporary)", c=s.load)
+                    tcmds.menuItem(i="reverseOrder.png", l="Revert back to this version.", c=s.revert)
             except KeyError as err:
                 # No index file...
-                ucmds(print, "Missing index:", s.archive, err)
+                utils.executeDeferred(print, "Missing index:", s.archive, err)
 
     def load(s, *_):
         """ Load version temporarally. """
@@ -101,6 +112,40 @@ class Version(object):
                 # Load the file
                 cmds.file(source, open=True, force=True)
 
+class Animation(object):
+    def __init__(s, window):
+        s.window = window
+        s.fps = 1
+        s.sem = threading.BoundedSemaphore(1)
+        s.playing = True
+        s.anims = {}
+        threading.Thread(target=s.loop).start()
+
+    def loop(s):
+        try:
+            while s.playing:
+                s.sem.acquire()
+                utils.executeDeferred(cmds.scriptJob, ro=True, e=("idle", s.update))
+                time.sleep(s.fps)
+        except Exception as err:
+            utils.executeDeferred(print, "Loop error:", err)
+
+    def update(s):
+        """ Update all frames """
+        try:
+            if cmds.window(s.window, q=True, ex=True):
+                for gui, frame in s.anims.items():
+                    if cmds.text(gui, q=True, ex=True):
+                        cmds.text(gui, e=True, l=next(frame))
+            else:
+                print("Animation stopped")
+                s.playing = False
+        except Exception as err:
+            print("update error:", err)
+        finally:
+            s.sem.release()
+
+
 class Window(object):
     def __init__(s):
         """ Load up window! """
@@ -108,6 +153,7 @@ class Window(object):
         win = cmds.window(t="Versions", rtf=True)
         col = cmds.columnLayout(adj=True)
         placeholder = cmds.text(l="No versions can be found...")
+        anim = Animation(win)
 
         path = cmds.file(q=True, sn=True)
         if path:
@@ -128,10 +174,10 @@ class Window(object):
                         space = cmds.columnLayout(adj=True, p=grid)
                         img = cmds.text(hl=True, l="", p=space)
                         nt = cmds.text(ww=True, l="", p=space)
-                        # Version().run(cmds.columnLayout(adj=True, p=grid), root, version)
-                        threads.append(threading.Thread(
-                            target=Version().run,
-                            args=(img, nt, root, version)))
+                        Version().run(img, nt, root, version, anim)
+                        # threads.append(threading.Thread(
+                        #     target=Version().run,
+                        #     args=(img, nt, root, version, anim)))
         cmds.showWindow(win)
         for t in threads:
             t.start()
