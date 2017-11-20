@@ -1,14 +1,15 @@
 # Archive stuff!
-from __future__ import print_function
+from __future__ import print_function, division
 import maya.utils as utils
+import maya.cmds as cmds
 import traceback
 import threading
 import tempfile
+import datetime
 import os.path
 import shutil
 import thumb
 import json
-import time
 import imp
 import os
 
@@ -48,7 +49,7 @@ def run_archive(root, src, files, note, module, callback):
         callback(res)
 
 def archive(note, src):
-    """ Given a list of filepaths and note, archive file """
+    """ Given a list of filepaths and note, archive file in a neat package. """
     root = os.path.dirname(src)
     # Create a temporary file
     tmp_root = tempfile.mkdtemp()
@@ -61,20 +62,31 @@ def archive(note, src):
         shutil.copy(src, dest)
         files.append(dest)
 
-        # Create thumbnail
-        thumb_name = "thumb.jpg"
-        pic = thumb.capture(500, tmp_root, thumb_name)
-        if pic:
-            files.append(pic)
+        # Create thumbnails
+        timeline_range = cmds.playbackOptions(q=True, min=True), cmds.playbackOptions(q=True, max=True)
+        num_thumbs = 10
+        frame_scale = (timeline_range[1] - timeline_range[0]) / num_thumbs
+        thumb_name = "thumb_{0:0>2}.jpg"
+        start = cmds.currentTime(q=True)
+        thumb_seq = []
+        for i in range(num_thumbs + 1):
+            frame = i * frame_scale + timeline_range[0]
+            cmds.currentTime(frame)
+            tn = thumb_name.format(i)
+            thumb_path = thumb.capture(500, tmp_root, tn)
+            if thumb_path:
+                thumb_seq.append(tn)
+                files.append(thumb_path)
 
         # Index file!
         index_name = "index.json"
         index_data = {
-            "time": time.time(),
+            "time": datetime.datetime.now().isoformat(),
             "note": note,
             "scene": dest_name,
             "source": src,
-            "thumb": thumb_name if pic else ""}
+            "thumb": thumb_seq[0] if thumb_seq else "",
+            "thumb_seq": thumb_seq}
         index_path = os.path.join(tmp_root, index_name)
         with open(index_path, "w") as f:
             json.dump(index_data, f, indent=4)
@@ -92,11 +104,11 @@ def archive(note, src):
 
         # Run archivers!
         for module in ARCHIVERS:
-            # run_archive(tmp_root, src, files, note, module, cleanup)
-            threading.Thread(
-                target=run_archive,
-                args=(tmp_root, src, files, note, module, cleanup)
-                ).start()
+            run_archive(tmp_root, src, files, note, module, cleanup)
+            # threading.Thread(
+            #     target=run_archive,
+            #     args=(tmp_root, src, files, note, module, cleanup)
+            #     ).start()
 
     except Exception as err:
         shutil.rmtree(tmp_root)

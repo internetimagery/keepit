@@ -104,6 +104,7 @@ class Version(object):
 class Window(object):
     def __init__(s):
         """ Load up window! """
+        threads = []
         win = cmds.window(t="Versions", rtf=True)
         col = cmds.columnLayout(adj=True)
         placeholder = cmds.text(l="No versions can be found...")
@@ -123,7 +124,6 @@ class Window(object):
                     max_versions = 10
                     max_cols = int((max_versions ** -0.5) * max_versions + 1)
                     grid = cmds.gridLayout(p=col, cw=WIDTH, ch=HEIGHT, nc=max_cols)
-                    threads = []
                     for version in sorted(versions, reverse=True, key=lambda x: x.group(2))[:10]:
                         space = cmds.columnLayout(adj=True, p=grid)
                         img = cmds.text(hl=True, l="", p=space)
@@ -132,6 +132,6 @@ class Window(object):
                         threads.append(threading.Thread(
                             target=Version().run,
                             args=(img, nt, root, version)))
-                    for t in threads:
-                        t.start()
         cmds.showWindow(win)
+        for t in threads:
+            t.start()
