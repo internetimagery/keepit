@@ -17,8 +17,7 @@ def build_message(message):
 
 def keepit(note, path):
     """ Kick off an archive """
-    root = os.path.dirname(path)
-    archive.archive(note, root, [path])
+    archive.archive(note, path)
 
 def main():
     """ Perform an archive save! """

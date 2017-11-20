@@ -7,6 +7,8 @@ import tempfile
 import os.path
 import shutil
 import thumb
+import json
+import time
 import imp
 import os
 
@@ -35,31 +37,48 @@ for path in os.listdir(ROOT):
             pass
         ARCHIVERS.append(module)
 
-def run_archive(root, src, dest, note, module, callback):
+def run_archive(root, src, files, note, module, callback):
     """ Run archive and when done, return """
     res = None
     try:
-        res = module.main(root, src, dest, note)
+        res = module.main(root, src, files, note)
     except Exception as err:
         res = traceback.format_exc()
     finally:
         callback(res)
 
-def archive(note, root, src):
+def archive(note, src):
     """ Given a list of filepaths and note, archive file """
+    root = os.path.dirname(src)
     # Create a temporary file
     tmp_root = tempfile.mkdtemp()
     try:
+        files = []
 
         # Copy save file to safe location
-        dest = [os.path.join(tmp_root, os.path.basename(a)) for a in src]
-        for s, d in zip(src, dest):
-            shutil.copy(s, d)
+        dest_name = os.path.basename(src)
+        dest = os.path.join(tmp_root, dest_name)
+        shutil.copy(src, dest)
+        files.append(dest)
 
         # Create thumbnail
-        pic = thumb.capture(500, tmp_root, "thumb.jpg")
+        thumb_name = "thumb.jpg"
+        pic = thumb.capture(500, tmp_root, thumb_name)
         if pic:
-            dest.append(pic)
+            files.append(pic)
+
+        # Index file!
+        index_name = "index.json"
+        index_data = {
+            "time": time.time(),
+            "note": note,
+            "scene": dest_name,
+            "source": src,
+            "thumb": thumb_name if pic else ""}
+        index_path = os.path.join(tmp_root, index_name)
+        with open(index_path, "w") as f:
+            json.dump(index_data, f, indent=4)
+        files.append(index_path)
 
         # Run when all archivers are complete
         results = []
@@ -73,9 +92,10 @@ def archive(note, root, src):
 
         # Run archivers!
         for module in ARCHIVERS:
+            # run_archive(tmp_root, src, files, note, module, cleanup)
             threading.Thread(
                 target=run_archive,
-                args=(root, src, dest, note, module, cleanup)
+                args=(tmp_root, src, files, note, module, cleanup)
                 ).start()
 
     except Exception as err:

@@ -7,20 +7,17 @@ import time
 import re
 
 ARCHIVE = "archive"
-EXT = (".ma", ".mb")
 WHITELIST = re.compile(r"[^ \.\-\_\w]")
 
-def main(root, source, copy, note):
+def main(temp_dir, source, files, note):
     """ Archive into folder. Note in filename """
     # Create an archive folder
-    archive = os.path.join(root, ARCHIVE)
+    archive = os.path.join(os.path.dirname(source), ARCHIVE)
     if not os.path.isdir(archive):
         os.mkdir(archive)
 
-    # Grab a file to use as the base name for archive
-    for basename in copy:
-        if os.path.splitext(basename)[-1] in EXT:
-            break
+    # name our archive
+    basename = os.path.basename(source)
 
     # Create a file name for archive
     name = os.path.splitext(os.path.basename(basename))[0]
@@ -36,7 +33,7 @@ def main(root, source, copy, note):
     z = zipfile.ZipFile(dest, "w")
     err = None
     try:
-        for src in copy:
+        for src in files:
             z.write(src, os.path.basename(src))
         return "File archived to {}".format(dest)
     except Exception as err:
