@@ -68,15 +68,10 @@ def archive(note, src):
         frame_scale = (timeline_range[1] - timeline_range[0]) / num_thumbs
         thumb_name = "thumb_{0:0>2}.jpg"
         start = cmds.currentTime(q=True)
-        thumb_seq = []
-        for i in range(num_thumbs + 1):
-            frame = i * frame_scale + timeline_range[0]
-            cmds.currentTime(frame)
-            tn = thumb_name.format(i)
-            thumb_path = thumb.capture(500, tmp_root, tn)
-            if thumb_path:
-                thumb_seq.append(tn)
-                files.append(thumb_path)
+        thumb_seq_paths = thumb.capture(500, tmp_root, {i * frame_scale + timeline_range[0]: thumb_name.format(i) for i in range(num_thumbs + 1)})
+        thumb_seq_sorted = [thumb_seq_paths[a] for a in sorted(thumb_seq_paths.keys())]
+        files += thumb_seq_sorted
+        thumb_seq_names = [os.path.basename(a) for a in thumb_seq_sorted]
 
         # Index file!
         index_name = "index.json"
@@ -85,8 +80,8 @@ def archive(note, src):
             "note": note,
             "scene": dest_name,
             "source": src,
-            "thumb": thumb_seq[0] if thumb_seq else "",
-            "thumb_seq": thumb_seq}
+            "thumb": thumb_seq_names[0] if thumb_seq_names else "",
+            "thumb_seq": thumb_seq_names}
         index_path = os.path.join(tmp_root, index_name)
         with open(index_path, "w") as f:
             json.dump(index_data, f, indent=4)
