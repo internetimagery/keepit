@@ -5,9 +5,10 @@ import datetime
 import archive
 import os.path
 import popup
+import view
 import save
 
-def main():
+def keep():
     """ Perform an archive save! """
     # Ask for a message. If no message, save as normal without archive.
     note = popup.Prompt()
@@ -19,6 +20,10 @@ def main():
     else:
         # Save normally. Thank you, come again!
         save.save()
+
+def view():
+    """ Look at what we have """
+    view.Window()
 
 def test1():
     """ test message """
