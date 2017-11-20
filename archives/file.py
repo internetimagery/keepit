@@ -1,9 +1,9 @@
 # File archive
 from __future__ import print_function
+import datetime
 import os.path
 import zipfile
 import shutil
-import time
 import re
 
 ARCHIVE = "archive"
@@ -21,7 +21,8 @@ def main(temp_dir, source, files, note):
 
     # Create a file name for archive
     name = os.path.splitext(os.path.basename(basename))[0]
-    stamp = int(time.time() * 100)
+
+    stamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     while True:
         filename = WHITELIST.sub("_", "{}_{}_{}".format(name, stamp, note)) + ".zip"
         dest = os.path.join(archive, filename)
