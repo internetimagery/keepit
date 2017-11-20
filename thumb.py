@@ -38,7 +38,7 @@ def capture(width, dest, seq):
                 subdivSurfaces=True,
                 displayTextures=True)
             for frame in seq:
-                ext = os.path.splitext(name)[1].lower()
+                ext = os.path.splitext(seq[frame])[1].lower()
                 if ext not in FMT:
                     raise RuntimeError("Format not yet supported \"{}\"".format(ext))
                 cmds.setAttr("defaultRenderGlobals.imageFormat", FMT[ext])
