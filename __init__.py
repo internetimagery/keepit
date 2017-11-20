@@ -21,7 +21,7 @@ def keep():
         # Save normally. Thank you, come again!
         save.save()
 
-def view():
+def look():
     """ Look at what we have """
     view.Window()
 

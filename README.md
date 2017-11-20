@@ -15,7 +15,7 @@ This command above can be used stand alone or to replace ctrl-s to save the scen
 To view previous version and recover:
 
     import keepit
-    keepit.view()
+    keepit.look()
 
 * Right click a thumbnail and load scene, to temporarally load the file. Then saveas, to save over your original file if you wish.
 * Right click a thumb and revert scene. This will replace the file with the old version. Be careful with this.
