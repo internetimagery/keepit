@@ -5,6 +5,7 @@ import maya.mel as mel
 
 def kill(id_):
     """ Kill script job """
+    cmds.file(modified=False)
     if cmds.scriptJob(ex=id_):
         cmds.scriptJob(kill=id_)
 
