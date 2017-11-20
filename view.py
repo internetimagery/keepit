@@ -46,7 +46,7 @@ class Version(object):
 
                 thumb = "<img width={} src='data:image/{};base64,{}'>".format(
                     WIDTH, os.path.splitext(s.index["thumb"])[1][1:], base64.b64encode(z.read(s.index["thumb"])))
-                desc = "created: {}\nnote: {}".format(datetime.datetime.fromtimestamp(s.index["time"]), s.index["note"])
+                desc = "created: {}\nnote: {}".format(datetime.datetime.fromtimestamp(s.index["time"]).strftime("%I:%M%p %a %d/%m/%Y"), s.index["note"])
                 if ucmds(cmds.text, img, q=True, ex=True):
                     ucmds(cmds.text, img, e=True, l=thumb, ann=desc)
                     ucmds(cmds.text, nt, e=True, l="{}...".format(s.index["note"][:17]) if len(s.index["note"]) > 20 else s.index["note"])
