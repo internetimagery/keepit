@@ -29,22 +29,30 @@ def ucmds(func, *args, **kwargs):
     finally:
         SEM.release()
 
+def confirm(message):
+    ok = "OK!"
+    if ok == cmds.confirmDialog(t="Hold up...", m=message, button=[ok,"Nope"], defaultButton="Nope"):
+        return True
+    return False
+
+
 class Version(object):
-    def run(s, parent, root, version):
+    def run(s, img, nt, root, version):
         """ Version! """
         s.archive = os.path.join(root, version.group(0))
         with zipfile.ZipFile(s.archive, "r") as z:
             try:
-                s.index = index_data = json.loads(z.read("index.json"))
+                s.index = json.loads(z.read("index.json"))
 
                 thumb = "<img width={} src='data:image/{};base64,{}'>".format(
-                    WIDTH, os.path.splitext(index_data["thumb"])[1][1:], base64.b64encode(z.read(index_data["thumb"])))
-                desc = "created: {}\nnote: {}".format(datetime.datetime.fromtimestamp(index_data["time"]), index_data["note"])
-                if ucmds(cmds.text, parent, q=True, ex=True):
-                    ucmds(cmds.text, parent, e=True, l=thumb, ann=desc, bgc=(0,0,0))
-                    ucmds(cmds.popupMenu, p=parent)
-                    ucmds(cmds.menuItem, l="Load this version.", c=s.load)
-                    ucmds(cmds.menuItem, l="Revert back to this version.", c=s.revert)
+                    WIDTH, os.path.splitext(s.index["thumb"])[1][1:], base64.b64encode(z.read(s.index["thumb"])))
+                desc = "created: {}\nnote: {}".format(datetime.datetime.fromtimestamp(s.index["time"]), s.index["note"])
+                if ucmds(cmds.text, img, q=True, ex=True):
+                    ucmds(cmds.text, img, e=True, l=thumb, ann=desc)
+                    ucmds(cmds.text, nt, e=True, l=s.index["note"])
+                    ucmds(cmds.popupMenu, p=img)
+                    ucmds(cmds.menuItem, i="fileNew.png", l="Load this version. (temporary)", c=s.load)
+                    ucmds(cmds.menuItem, i="reverseOrder.png", l="Revert back to this version.", c=s.revert)
             except KeyError as err:
                 # No index file...
                 ucmds(print, "ERROR:", err, s.archive)
@@ -68,7 +76,7 @@ class Version(object):
         # check if file is in its old location
         source = s.index["source"]
         if not os.path.isfile(source):
-            if cmds.confirmDialog(t="Hold up...", m="Cannot find original file: {}\nPlesae provide a folder to recover the file in.".format(source)):
+            if confirm("Cannot find original file: {}\nPlesae provide a folder to recover the file in.".format(source)):
                 path = cmds.fileDialog2(fileMode=3)
                 if not path:
                     return
@@ -76,7 +84,7 @@ class Version(object):
             else:
                 return
 
-        if cmds.confirmDialog(t="Here we go...", m="You will lose all unsaved changes if you continue.\nAre you sure?"):
+        if confirm("You will lose all unsaved changes if you continue.\nAre you sure?"):
             note = "AUTOSAVE: Recovering version '{}'".format(s.index["note"])
             sup = popup.Startup(note)
             with sup:
@@ -99,7 +107,6 @@ class Window(object):
         win = cmds.window(t="Versions", rtf=True)
         col = cmds.columnLayout(adj=True)
         placeholder = cmds.text(l="No versions can be found...")
-        grid = cmds.gridLayout()
 
         path = cmds.file(q=True, sn=True)
         if path:
@@ -113,14 +120,18 @@ class Window(object):
                 versions = [a for a in scan if a and strip.sub("", a.group(1)) == scene_strip]
                 if versions:
                     cmds.deleteUI(placeholder)
-                    grid = cmds.gridLayout(p=col, cr=True, cw=WIDTH, ch=HEIGHT)
+                    max_versions = 10
+                    max_cols = int((max_versions ** -0.5) * max_versions + 1)
+                    grid = cmds.gridLayout(p=col, cw=WIDTH, ch=HEIGHT, nc=max_cols)
                     threads = []
                     for version in sorted(versions, reverse=True, key=lambda x: x.group(2))[:10]:
-                        text = cmds.text(hl=True, l="", p=grid)
-                        # Version(text, root, version)
+                        space = cmds.columnLayout(adj=True, p=grid)
+                        img = cmds.text(hl=True, l="", p=space)
+                        nt = cmds.text(ww=True, l="", p=space)
+                        # Version().run(cmds.columnLayout(adj=True, p=grid), root, version)
                         threads.append(threading.Thread(
                             target=Version().run,
-                            args=(text, root, version)))
+                            args=(img, nt, root, version)))
                     for t in threads:
                         t.start()
         cmds.showWindow(win)
