@@ -2,6 +2,8 @@
 from __future__ import print_function
 import maya.cmds as cmds
 import maya.mel as mel
+import os.path
+import time
 
 def kill(id_):
     """ Kill script job """
@@ -19,13 +21,14 @@ def save():
 
 def save_and_call(callback):
     """ Save scene! """
-    job = cmds.scriptJob(e=('SceneSaved', lambda: callback(cmds.file(q=True, sn=True))), ro=True)
-    cmds.scriptJob(e=('idle', lambda: kill(job)), ro=True)
-    try:
-        save()
-    except Exception as err:
-        kill(job)
-        raise err
+    def validate():
+        """ Validate scene was saved """
+        path = cmds.file(q=True, sn=True)
+        if path and os.path.isfile(path):
+            if os.path.getmtime(path) > time.time() - 3: # tolerance
+                callback(path)
+    cmds.scriptJob(e=('idle', validate), ro=True)
+    save()
 
 def test():
     """ Quick test """
