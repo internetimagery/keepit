@@ -5,15 +5,9 @@ import maya.mel as mel
 import os.path
 import time
 
-def kill(id_):
-    """ Kill script job """
-    cmds.file(modified=False)
-    if cmds.scriptJob(ex=id_):
-        cmds.scriptJob(kill=id_)
-
 def save():
     """ Run maya's built in save """
-    if cmds.file(q=True, sn=True):
+    if os.path.isfile(cmds.file(q=True, sn=True) or ""):
         mel.eval("SaveScene")
     else:
         mel.eval("SaveSceneAs") # Use manually in case it's overriden
@@ -25,8 +19,9 @@ def save_and_call(callback):
         """ Validate scene was saved """
         path = cmds.file(q=True, sn=True)
         if path and os.path.isfile(path):
-            if os.path.getmtime(path) > time.time() - 3: # tolerance
+            if os.path.getmtime(path) > time.time() - 2: # tolerance
                 callback(path)
+                cmds.file(modified=False) # Scene is not modified after save!
     cmds.scriptJob(e=('idle', validate), ro=True)
     save()
 
