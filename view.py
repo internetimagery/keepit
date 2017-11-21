@@ -117,7 +117,7 @@ class Version(object):
 class Animation(object):
     def __init__(s, window):
         s.window = window
-        s.fps = 1
+        s.fps = 0.8
         s.sem = threading.BoundedSemaphore(1)
         s.playing = True
         s.anims = {}
