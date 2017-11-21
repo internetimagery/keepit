@@ -78,12 +78,10 @@ def archive(note, src):
         timeline_range = cmds.playbackOptions(q=True, min=True), cmds.playbackOptions(q=True, max=True)
         num_thumbs = 10
         frame_scale = (timeline_range[1] - timeline_range[0]) / num_thumbs
-        thumb_name = "thumb_{0:0>2}.jpg"
         start = cmds.currentTime(q=True)
-        thumb_seq_paths = thumb.capture(500, tmp_root, {i * frame_scale + timeline_range[0]: thumb_name.format(i) for i in range(num_thumbs + 1)})
-        thumb_seq_sorted = [thumb_seq_paths[a] for a in sorted(thumb_seq_paths.keys())]
-        files += thumb_seq_sorted
-        thumb_seq_names = [os.path.basename(a) for a in thumb_seq_sorted]
+        thumb_seq_paths = thumb.capture(500, tmp_root, (i * frame_scale + timeline_range[0] for i in range(num_thumbs + 1)))
+        files += thumb_seq_paths
+        thumb_seq_names = [os.path.basename(a) for a in thumb_seq_paths]
 
         # Index file!
         index_name = "index.json"
