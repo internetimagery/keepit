@@ -19,14 +19,14 @@ func Store(path string, files map[string]string) error {
 		return errors.New("Archive already exists!")
 	}
 
-	newfile, err := os.Create(path)
+	zipfile, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer newfile.Close()
+	defer zipfile.Close()
 
-	zipWriter := zip.NewWriter(newfile)
-	defer zipWriter.Close()
+	archive := zip.NewWriter(zipfile)
+	defer archive.Close()
 
 	// Add files to zip
 	for name, real_path := range files {
@@ -53,7 +53,7 @@ func Store(path string, files map[string]string) error {
 		header.Method = zip.Deflate
 		header.Name = name
 
-		writer, err := zipWriter.CreateHeader(header)
+		writer, err := archive.CreateHeader(header)
 		if err != nil {
 			return err
 		}
