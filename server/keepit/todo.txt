@@ -1,0 +1,20 @@
+## Archive
+
+* create archive functionality
+* hardcode a json index file into the archive
+* perhaps object orient the archive. ie: NewArchive("path").Add("name", "path").Save()
+
+## Utilities
+
+* Check if file exists.
+
+## Gif
+
+* Generate gif from image sequence
+
+## Web server
+
+* Serve up versions through REST interface
+* Create web interface to grab versions etc. This could be in python to integrate with maya if need be? Todo: Figure out how to link this with maya etc.
+* Allow server shutdown from within web app.
+* View logs from within web app.
