@@ -12,7 +12,7 @@ import (
 )
 
 func Store(path string, files map[string]string) error {
-	if ok, err := exists(path); ok {
+	if ok, err := path_exists(path); ok {
 		if err != nil {
 			return err
 		}
@@ -29,9 +29,9 @@ func Store(path string, files map[string]string) error {
 	defer zipWriter.Close()
 
 	// Add files to zip
-	for _, name := range files {
+	for name, real_path := range files {
 
-		zipfile, err := os.Open(files[name])
+		zipfile, err := os.Open(real_path)
 		if err != nil {
 			return err
 		}
@@ -51,6 +51,7 @@ func Store(path string, files map[string]string) error {
 		// Change to deflate to gain better compression
 		// see http://golang.org/pkg/archive/zip/#pkg-constants
 		header.Method = zip.Deflate
+		header.Name = name
 
 		writer, err := zipWriter.CreateHeader(header)
 		if err != nil {

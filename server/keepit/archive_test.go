@@ -11,37 +11,36 @@ import (
 
 func TestArchive(t *testing.T) {
 	// Setup
-	wd, err := os.Getwd()
+	wd, _ := os.Getwd()
 	tmp_dir := filepath.Join(wd, "temp")
-	if ok, err := exists(tmp_dir); !ok {
-		if err != nil {
-			t.Error(err)
-		}
-		os.Remove(tmp_dir)
-	}
-	err = os.Mkdir(tmp_dir, 700)
+	os.Mkdir(tmp_dir, 777)
 	defer os.Remove(tmp_dir)
-	if err != nil {
-		t.Error(err)
-	}
 
-	if err != nil {
-		t.Error(err)
-	}
+	// Create a test file to archive
 	test_file := filepath.Join(tmp_dir, "testfile")
+	arch_file := filepath.Join(tmp_dir, "archive.zip")
 	ioutil.WriteFile(test_file, []byte("Some information here!"), 700)
 	index := map[string]string{
 		"testfile": test_file,
 	}
 
+	// Run tests
 	t.Run("Create", func(t *testing.T) {
-		path := filepath.Join(tmp_dir, "create_test.zip")
-		err := Store(path, index)
+		err := Store(arch_file, index)
 		if err != nil {
 			t.Error(err)
 		}
-		if ok, _ := exists(path); !ok {
+		if ok, _ := path_exists(arch_file); !ok {
 			t.Fail()
 		}
+	})
+	t.Run("Read Only", func(t *testing.T) {
+		err := Store(arch_file, index)
+		if err == nil {
+			t.Fail()
+		}
+	})
+	t.Run("Recover", func(t *testing.T) {
+
 	})
 }

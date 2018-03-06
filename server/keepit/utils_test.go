@@ -16,13 +16,22 @@ func TestExists(t *testing.T) {
 		t.Error(err)
 	}
 	temp_path := filepath.Join(wd, "tempfile.123")
+
+	ok, err := path_exists(temp_path)
+	if err != nil {
+		t.Error(err)
+	}
+	if ok {
+		t.Fail()
+	}
+
 	err = ioutil.WriteFile(temp_path, []byte("Here is some text!"), 600)
 	if err != nil {
 		t.Error(err)
 	}
 	defer os.Remove(temp_path)
 
-	ok, err := Path_exists(temp_path)
+	ok, err = path_exists(temp_path)
 	if err != nil {
 		t.Error(err)
 	}
